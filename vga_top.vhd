@@ -1,16 +1,16 @@
 -- Listing 12.6
 library ieee;
 use ieee.std_logic_1164.all;
-entity pong_top_an is
+entity vga_top is
    port (
       clk,reset: in std_logic;
       btn: in std_logic_vector (1 downto 0);
       hsync, vsync: out  std_logic;
       rgb: out std_logic_vector(2 downto 0)
    );
-end pong_top_an;
+end vga_top;
 
-architecture arch of pong_top_an is
+architecture arch of vga_top is
    signal pixel_x, pixel_y: std_logic_vector (9 downto 0);
    signal video_on, pixel_tick: std_logic;
    signal rgb_reg, rgb_next: std_logic_vector(2 downto 0);
@@ -22,7 +22,7 @@ begin
                hsync=>hsync, vsync=>vsync,
                pixel_x=>pixel_x, pixel_y=>pixel_y);
    -- instantiate graphic generator
-   pong_graph_an_unit: entity work.tile_rom_32x32
+   pixel_generator_unit: entity work.tile_rom_32x32
       port map (clk=>clk, reset=>reset,
                 btn=>btn, video_on=>video_on,
                 pixel_x=>pixel_x, pixel_y=>pixel_y,

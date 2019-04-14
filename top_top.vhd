@@ -18,7 +18,7 @@ architecture arch of top_top is
    signal rgb: std_logic_vector(2 downto 0);
    signal btn_s: std_logic_vector(1 downto 0);
 begin
-   pong_top_unit: entity work.pong_top_an
+   top_unit: entity work.vga_top
       port map(clk=>clk, reset=>reset,
                btn=>btn_s, hsync=>hsync,
                vsync=>vsync, rgb=>rgb);
