@@ -17,7 +17,6 @@ architecture arch of tile_rom_32x32 is
    -- x, y coordinates (0,0) to (639,479)
    signal pix_x, pix_y: unsigned(9 downto 0);
    
-   signal on32: std_logic;
    signal tile_x, tile_y: std_logic_vector(4 downto 0);
    signal tile_row: std_logic_vector(19 downto 0);
    -- world grid rom
@@ -26,21 +25,21 @@ architecture arch of tile_rom_32x32 is
    -- rull tile ROM definition
    constant tile_rom: tile_rom_type :=
    (
-      "10000000000000000000",
-      "00000000000000000000",
-      "00000000000000000000",
-      "00001000000000000000",
-      "00000000000000000000",
-      "00000000000000000000",
-      "00000000000000000000",
-      "00000000111100000000",
-      "00000000000000000000",
-      "00000000000000000000",
-      "00000000000000000000",
-      "00000000000000000000",
-      "00000000000000010000",
-      "00000000000000000000",
-      "00000000000000000000"
+        "10001010010111001000", --0
+        "10001010010100101000", --1
+        "10001010010100101000", --2
+        "10001010010100101000", --3
+        "10001010010100101000", --4
+        "10001010010100101000", --5
+        "01010010010100101000", --6
+        "01010011110100101000", --7
+        "01010010010100101000", --8
+        "01010010010100101000", --9
+        "01010010010100101000", --10
+        "01010010010100101000", --11
+        "01010010010100101000", --12
+        "00100010010100101000", --13
+        "00100010010111001111"  --14
    );
 begin
    pix_x <= unsigned(pixel_x);
@@ -55,9 +54,9 @@ begin
 	tile_y <= pixel_y(9 downto 5);
     
     -- get row of tiles from tile rom
-    tile_row <= tile_rom(to_integer(unsigned(tile_x)));
+    tile_row <= tile_rom(to_integer(unsigned(tile_y)));
     -- select tile from tile row
-	wall_on <= tile_row(to_integer(unsigned(tile_y)));
+	wall_on <= tile_row(19 - to_integer(unsigned(tile_x)));
 
    process(video_on, wall_on)
    begin
