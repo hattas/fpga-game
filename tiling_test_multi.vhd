@@ -17,6 +17,7 @@ architecture arch of tiling_test_multi is
    -- x, y coordinates (0,0) to (639,479)
    signal pix_x, pix_y: unsigned(9 downto 0);
    
+   signal on8, on16, on32, on64: std_logic;
    signal tile_x_8, tile_y_8: std_logic_vector(6 downto 0);
    signal tile_x_16, tile_y_16: std_logic_vector(5 downto 0);
    signal tile_x_32, tile_y_32: std_logic_vector(4 downto 0);
@@ -39,37 +40,28 @@ begin
     tile_x_64 <= pixel_x(9 downto 6);
 	tile_y_64 <= pixel_y(9 downto 6);
 	
+    -- create checkerboard pattern
+    on8 <= tile_x_8(0) xnor tile_y_8(0);
+    on16 <= tile_x_16(0) xnor tile_y_16(0);
+    on32 <= tile_x_32(0) xnor tile_y_32(0);
+    on64 <= tile_x_64(0) xnor tile_y_64(0);
+    
+    -- select size of tiles based on quadrant of screen
 	process(pixel_x, pixel_y)
 	begin
         if ((pix_x < 320) and (pix_y < 240)) then
-            if (tile_x_8(0) xnor tile_y_8(0)) = '1' then
-                wall_on <= '1';
-            else
-                wall_on <= '0';
-            end if;
+            wall_on <= on8;
         elsif ((pix_x >= 320) and (pix_y < 240)) then
-            if (tile_x_16(0) xnor tile_y_16(0)) = '1' then
-                wall_on <= '1';
-            else
-                wall_on <= '0';
-            end if;
+            wall_on <= on16;
         elsif ((pix_x < 320) and (pix_y >= 240)) then
-            if (tile_x_32(0) xnor tile_y_32(0)) = '1' then
-                wall_on <= '1';
-            else
-                wall_on <= '0';
-            end if;
+            wall_on <= on32;
         else
-            if (tile_x_64(0) xnor tile_y_64(0)) = '1' then
-                wall_on <= '1';
-            else
-                wall_on <= '0';
-            end if;
+            wall_on <= on64;
         end if;
 	end process;
 	
 	
-   process(video_on,wall_on)
+   process(video_on, wall_on)
    begin
       if video_on='0' then
           graph_rgb <= "000"; --blank

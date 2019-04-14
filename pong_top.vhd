@@ -22,7 +22,7 @@ begin
                hsync=>hsync, vsync=>vsync,
                pixel_x=>pixel_x, pixel_y=>pixel_y);
    -- instantiate graphic generator
-   pong_graph_an_unit: entity work.pong_graph_animate
+   pong_graph_an_unit: entity work.tiling_test_multi
       port map (clk=>clk, reset=>reset,
                 btn=>btn, video_on=>video_on,
                 pixel_x=>pixel_x, pixel_y=>pixel_y,
