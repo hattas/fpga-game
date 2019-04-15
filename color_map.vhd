@@ -26,7 +26,7 @@ begin
 			  when "101" => vga_rgb <= x"55FFFF";
 			  when "110" => vga_rgb <= x"AAFFFF";
 			  when "111" => vga_rgb <= x"FFFFFF"; --white
-			  when others => report "unreachable" severity failure;
+			  when others => vga_rgb <= x"FF0000";
 		 end case;
 	end process;
 	

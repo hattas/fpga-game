@@ -20,9 +20,9 @@ architecture arch of color_test is
    signal pix_x, pix_y: unsigned(9 downto 0);
    
    -- signals to count time
-   constant TIMECONST: integer := 59;
+   constant TIMECONST: integer := 10;
    signal count: integer := 0;
-      
+   signal color_add: unsigned(2 downto 0) := "000";
 begin
    pix_x <= unsigned(pixel_x);
    pix_y <= unsigned(pixel_y);
@@ -43,29 +43,36 @@ begin
             end if;
         end if;
     end process;
+    
+    process(second_tick)
+    begin
+        if second_tick = '1' then
+            color_add <= color_add + 1;
+        end if;
+    end process;
 
    
    process(video_on)
    begin
-      if video_on='0' or second_tick='1' then
+      if video_on='0' then
           graph_rgb <= "000"; --blank
       else
 			if pix_x < 80 then
-				graph_rgb <= "000";
+				graph_rgb <= std_logic_vector(color_add + 0);
 			elsif pix_x < 160 then
-				graph_rgb <= "001";
+				graph_rgb <= std_logic_vector(color_add + 1);
 			elsif pix_x < 240 then
-				graph_rgb <= "010";
+				graph_rgb <= std_logic_vector(color_add + 2);
 			elsif pix_x < 320 then
-				graph_rgb <= "011";
+				graph_rgb <= std_logic_vector(color_add + 3);
 			elsif pix_x < 400 then
-				graph_rgb <= "100";
+				graph_rgb <= std_logic_vector(color_add + 4);
 			elsif pix_x < 480 then
-				graph_rgb <= "101";
+				graph_rgb <= std_logic_vector(color_add + 5);
 			elsif pix_x < 560 then
-				graph_rgb <= "110";
+				graph_rgb <= std_logic_vector(color_add + 6);
 			else
-				graph_rgb <= "111";
+				graph_rgb <= std_logic_vector(color_add + 7);
 			end if;
       end if;
    end process;
