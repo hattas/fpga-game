@@ -13,9 +13,16 @@ entity color_test is
 end color_test;
 
 architecture arch of color_test is
-   signal refr_tick, wall_on: std_logic;
+   signal refr_tick, second_tick: std_logic;
+   signal wall_on: std_logic;
+   
    -- x, y coordinates (0,0) to (639,479)
    signal pix_x, pix_y: unsigned(9 downto 0);
+   
+   -- signals to count time
+   constant TIMECONST: integer := 59;
+   signal count: integer := 0;
+      
 begin
    pix_x <= unsigned(pixel_x);
    pix_y <= unsigned(pixel_y);
@@ -23,10 +30,24 @@ begin
    --       i.e., when the screen is refreshed (60 Hz)
    refr_tick <= '1' when (pix_y=481) and (pix_x=0) else
                 '0';
-	
+   
+    process (refr_tick)
+    begin
+        if refr_tick = '1' then
+            count <= count + 1;
+            if count = TIMECONST then
+                second_tick <= '1';
+                count <= 0;
+            else
+                second_tick <= '0';
+            end if;
+        end if;
+    end process;
+
+   
    process(video_on)
    begin
-      if video_on='0' then
+      if video_on='0' or second_tick='1' then
           graph_rgb <= "000"; --blank
       else
 			if pix_x < 80 then
