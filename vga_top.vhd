@@ -22,7 +22,7 @@ begin
                hsync=>hsync, vsync=>vsync,
                pixel_x=>pixel_x, pixel_y=>pixel_y);
    -- instantiate graphic generator
-   pixel_generator_unit: entity work.tile_rom_32x32
+   pixel_generator_unit: entity work.color_test
       port map (clk=>clk, reset=>reset,
                 btn=>btn, video_on=>video_on,
                 pixel_x=>pixel_x, pixel_y=>pixel_y,

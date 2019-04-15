@@ -22,11 +22,11 @@ begin
       port map(clk=>clk, reset=>reset,
                btn=>btn_s, hsync=>hsync,
                vsync=>vsync, rgb=>rgb);
+	
+	-- instantiate color mapper
+	color_map_unit: entity work.color_map port map(rgb, vga_r, vga_g, vga_b);
    
    btn_s <= not btn;
-   vga_r <= (others => '1') when rgb(2)='1' else (others => '0');
-   vga_g <= (others => '1') when rgb(1)='1' else (others => '0');
-   vga_b <= (others => '1') when rgb(0)='1' else (others => '0');
    vga_clk <= clk;
    
 end arch;
