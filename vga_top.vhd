@@ -1,7 +1,7 @@
 -- Listing 12.6
 library ieee;
 use ieee.std_logic_1164.all;
-entity vga_top is
+entity vga_top is --Port map for the vga top
    port (
       clk,reset: in std_logic;
       btn: in std_logic_vector (1 downto 0);
@@ -30,9 +30,9 @@ begin
    -- rgb buffer
    process (clk)
    begin
-      if (clk'event and clk='1') then
+      if (clk'event and clk='1') then 
          if (pixel_tick='1') then
-            rgb_reg <= rgb_next;
+            rgb_reg <= rgb_next; --setting rgb_reg to the next rgb value
          end if;
       end if;
    end process;
