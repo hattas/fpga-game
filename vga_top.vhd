@@ -4,7 +4,7 @@ use ieee.std_logic_1164.all;
 entity vga_top is
    port (
       clk,reset: in std_logic;
-      btn: in std_logic_vector (1 downto 0);
+      btn: in std_logic_vector (3 downto 0);
       hsync, vsync: out  std_logic;
       rgb: out std_logic_vector(2 downto 0)
    );
@@ -22,7 +22,7 @@ begin
                hsync=>hsync, vsync=>vsync,
                pixel_x=>pixel_x, pixel_y=>pixel_y);
    -- instantiate graphic generator
-   pixel_generator_unit: entity work.color_test
+   pixel_generator_unit: entity work.camera_test
       port map (clk=>clk, reset=>reset,
                 btn=>btn, video_on=>video_on,
                 pixel_x=>pixel_x, pixel_y=>pixel_y,

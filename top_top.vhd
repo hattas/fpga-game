@@ -5,7 +5,8 @@ use ieee.std_logic_1164.all;
 entity top_top is
    port (
       clk, reset: in std_logic;
-      btn: in std_logic_vector (1 downto 0);
+      btn: in std_logic_vector (3 downto 0);
+      leds: out std_logic_vector(3 downto 0);
       hsync, vsync: out  std_logic;
 	  vga_r, vga_g, vga_b: out std_logic_vector(7 downto 0);
       vga_clk: out std_logic;
@@ -16,7 +17,7 @@ end top_top;
 
 architecture arch of top_top is
    signal rgb: std_logic_vector(2 downto 0);
-   signal btn_s: std_logic_vector(1 downto 0);
+   signal btn_s: std_logic_vector(3 downto 0);
 begin
    top_unit: entity work.vga_top
       port map(clk=>clk, reset=>reset,
@@ -26,6 +27,7 @@ begin
 	-- instantiate color mapper
 	color_map_unit: entity work.color_map port map(rgb, vga_r, vga_g, vga_b);
    
+   leds <= btn_s;
    btn_s <= not btn;
    vga_clk <= clk;
    
