@@ -192,11 +192,12 @@ begin
             player_x_r_next := player_x_next_var + player_size - 1;
             player_y_b_next := player_y_next_var + player_size - 1;
             
-            -- get tiles from player next position
+            -- get tiles for x direction
+            -- get next x tiles, but current y tiles
             tile_l := player_x_l_next(10 downto 5);
             tile_r := player_x_r_next(10 downto 5);
-            tile_t := player_y_t_next(10 downto 5);
-            tile_b := player_y_b_next(10 downto 5);
+            tile_t := player_y_t(10 downto 5);
+            tile_b := player_y_b(10 downto 5);
 
             -- get wall_on from ROM based on tile position
             tile_row_var := tile_rom(to_integer(tile_t));
@@ -217,6 +218,30 @@ begin
             elsif  (collision_topright='1' or collision_botright='1') and player_x_delta_reg>0 then
                 player_x_next_var := tile_l & "00000";
             end if;
+            
+            -- update left and right
+            player_x_l_next := player_x_next_var;
+            player_x_r_next := player_x_next_var + player_size - 1;
+            
+            -- get tiles for x direction
+            -- get next x tiles, but current y tiles
+            tile_l := player_x_l_next(10 downto 5);
+            tile_r := player_x_r_next(10 downto 5);
+            tile_t := player_y_t_next(10 downto 5);
+            tile_b := player_y_b_next(10 downto 5);
+
+            -- get wall_on from ROM based on tile position
+            tile_row_var := tile_rom(to_integer(tile_t));
+            collision_topleft := tile_row_var(39 - to_integer(tile_l));
+            collision_topright := tile_row_var(39 - to_integer(tile_r));
+            
+            -- get wall_on from ROM based on tile position
+            tile_row_var := tile_rom(to_integer(tile_b));
+            collision_botleft := tile_row_var(39 - to_integer(tile_l));
+            collision_botright := tile_row_var(39 - to_integer(tile_r));
+            col_led <= collision_topleft & collision_topright & collision_botleft & collision_botright;
+            
+            
             -- collision moving up, adjust player to nearest tile below
             if (collision_topleft='1' or collision_topright='1') and player_y_delta_reg<0 then
                 player_y_next_var := (tile_t+1) & "00000";
@@ -224,6 +249,7 @@ begin
             elsif  (collision_botleft='1' or collision_botright='1') and player_y_delta_reg>0 then
                 player_y_next_var := tile_t & "00000";
             end if;
+            
             player_x_next <= player_x_next_var;
             player_y_next <= player_y_next_var;
         else
