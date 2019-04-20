@@ -6,6 +6,7 @@ entity game_top is
       clk, reset: in std_logic;
       btn: in std_logic_vector (3 downto 0);
       leds: out std_logic_vector(3 downto 0);
+      led: out std_logic;
       hsync, vsync: out  std_logic;
 	  vga_r, vga_g, vga_b: out std_logic_vector(7 downto 0);
       vga_clk: out std_logic;
@@ -28,11 +29,11 @@ begin
                pixel_x=>pixel_x, pixel_y=>pixel_y);
                
    -- instantiate graphic generator
-   pixel_generator_unit: entity work.camera_test
-      port map (clk=>clk, reset=>reset,
+   pixel_generator_unit: entity work.player_test
+      port map (clk=>pixel_tick, reset=>reset,
                 btn=>btn_s, video_on=>video_on,
                 pixel_x=>pixel_x, pixel_y=>pixel_y,
-                graph_rgb=>rgb_next);
+                graph_rgb=>rgb_next, sec_tick=>led);
                 
    -- instantiate color mapper
 	color_map_unit: entity work.color_map port map(rgb_reg, vga_r, vga_g, vga_b);
