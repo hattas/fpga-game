@@ -62,7 +62,14 @@ set_location_assignment PIN_W16 -to leds[1]
 set_location_assignment PIN_V17 -to leds[2]
 set_location_assignment PIN_V18 -to leds[3]
 
+# second led blinker
 set_location_assignment PIN_Y21 -to led
+
+# collision indicator LEDS
+set_location_assignment PIN_W19 -to col_led[0]
+set_location_assignment PIN_Y19 -to col_led[1]
+set_location_assignment PIN_W20 -to col_led[2]
+set_location_assignment PIN_W21 -to col_led[3]
 
 # use last switch for reset
 set_location_assignment PIN_AE12 -to reset

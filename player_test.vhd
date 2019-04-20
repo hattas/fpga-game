@@ -9,7 +9,8 @@ entity player_test is
         video_on : in std_logic;
         pixel_x, pixel_y : in std_logic_vector(9 downto 0);
         graph_rgb : out std_logic_vector(2 downto 0);
-        sec_tick : out std_logic
+        sec_tick : out std_logic;
+        col_led: out std_logic_vector(3 downto 0)
     );
 end player_test;
 
@@ -22,13 +23,13 @@ architecture arch of player_test is
     signal pix_x, pix_y : unsigned(10 downto 0);
     signal world_pix_x, world_pix_y : unsigned(10 downto 0);
     -- player signals
-    signal player_x_reg, player_x_next : unsigned(10 downto 0);
-    signal player_y_reg, player_y_next : unsigned(10 downto 0);
+    signal player_x_reg, player_x_next : unsigned(10 downto 0) := to_unsigned(50, 11);
+    signal player_y_reg, player_y_next : unsigned(10 downto 0) := to_unsigned(50, 11);
     -- x and y left, right, and middle
     signal player_x_l, player_x_r, player_x_m, player_y_t, player_y_b, player_y_m : unsigned(10 downto 0);
     -- player delta regs
-    signal player_x_delta_reg, player_x_delta_next : unsigned(10 downto 0);
-    signal player_y_delta_reg, player_y_delta_next : unsigned(10 downto 0);
+    signal player_x_delta_reg, player_x_delta_next : signed(10 downto 0);
+    signal player_y_delta_reg, player_y_delta_next : signed(10 downto 0);
     -- camera signals
     signal cam_x, cam_y : unsigned(10 downto 0);
     -- world constants
@@ -85,8 +86,8 @@ begin
     process (clk, reset)
     begin
         if reset = '1' then
-            player_x_reg <= (others => '0');
-            player_y_reg <= (others => '0');
+            player_x_reg <= to_unsigned(50, 11);
+            player_y_reg <= to_unsigned(50, 11);
             player_x_delta_reg <= (others => '0');
             player_y_delta_reg <= (others => '0');
         elsif (clk'EVENT and clk = '1') then
@@ -152,28 +153,84 @@ begin
         if rising_edge(refr_tick) then
             --left
             if btn(3) = '1' then
-                player_x_delta_next <= unsigned(to_signed( - 1, 11));
+                player_x_delta_next <= to_signed(-1, 11);
                 --right
             elsif btn(0) = '1' then
-                player_x_delta_next <= to_unsigned(1, 11);
+                player_x_delta_next <= to_signed(1, 11);
             else
                 player_x_delta_next <= (others => '0');
             end if;
             --down
             if btn(2) = '1' then
-                player_y_delta_next <= to_unsigned(1, 11);
+                player_y_delta_next <= to_signed(1, 11);
                 --up
             elsif btn(1) = '1' then
-                player_y_delta_next <= unsigned(to_signed( - 1, 11));
+                player_y_delta_next <= to_signed(-1, 11);
             else
                 player_y_delta_next <= (others => '0');
             end if;
         end if;
     end process player_delta_process;
+    
+    player_update_process: process(refr_tick)
+        -- variables to be used inside this process only for collision detection and resolution
+        variable player_x_next_var, player_y_next_var : unsigned(10 downto 0);
+        variable player_x_l_next, player_x_r_next : unsigned(10 downto 0);
+        variable player_y_t_next, player_y_b_next : unsigned(10 downto 0);
+        variable tile_l, tile_r, tile_t, tile_b : unsigned(5 downto 0);
+        variable collision_topleft, collision_topright, collision_botleft, collision_botright : std_logic;
+        variable tile_row_var : std_logic_vector(39 downto 0);
+    begin
+        if refr_tick = '1' then
+            -- get potential update
+            player_x_next_var := player_x_reg + unsigned(player_x_delta_reg);
+            player_y_next_var := player_y_reg + unsigned(player_y_delta_reg);
+            
+            -- get player left, top, right, bottom coordinates
+            player_x_l_next := player_x_next_var;
+            player_y_t_next := player_y_next_var;
+            player_x_r_next := player_x_next_var + player_size - 1;
+            player_y_b_next := player_y_next_var + player_size - 1;
+            
+            -- get tiles from player next position
+            tile_l := player_x_l_next(10 downto 5);
+            tile_r := player_x_r_next(10 downto 5);
+            tile_t := player_y_t_next(10 downto 5);
+            tile_b := player_y_b_next(10 downto 5);
 
-    -- update player position
-    player_x_next <= player_x_reg + player_x_delta_reg when refr_tick = '1' else player_x_reg;
-    player_y_next <= player_y_reg + player_y_delta_reg when refr_tick = '1' else player_y_reg;
+            -- get wall_on from ROM based on tile position
+            tile_row_var := tile_rom(to_integer(tile_t));
+            collision_topleft := tile_row_var(39 - to_integer(tile_l));
+            collision_topright := tile_row_var(39 - to_integer(tile_r));
+            
+            -- get wall_on from ROM based on tile position
+            tile_row_var := tile_rom(to_integer(tile_b));
+            collision_botleft := tile_row_var(39 - to_integer(tile_l));
+            collision_botright := tile_row_var(39 - to_integer(tile_r));
+            col_led <= collision_topleft & collision_topright & collision_botleft & collision_botright;
+            
+            -- handle collisions
+            -- collision moving left, adjust player to nearest tile to the right
+            if (collision_topleft='1' or collision_botleft='1') and player_x_delta_reg<0 then
+                player_x_next_var := (tile_l+1) & "00000";
+            -- collision moving left, adjust player to nearest tile to the right
+            elsif  (collision_topright='1' or collision_botright='1') and player_x_delta_reg>0 then
+                player_x_next_var := tile_l & "00000";
+            end if;
+            -- collision moving up, adjust player to nearest tile below
+            if (collision_topleft='1' or collision_topright='1') and player_y_delta_reg<0 then
+                player_y_next_var := (tile_t+1) & "00000";
+            -- collision moving down, adjust player to nearest tile above
+            elsif  (collision_botleft='1' or collision_botright='1') and player_y_delta_reg>0 then
+                player_y_next_var := tile_t & "00000";
+            end if;
+            player_x_next <= player_x_next_var;
+            player_y_next <= player_y_next_var;
+        else
+            player_x_next <= player_x_reg;
+            player_y_next <= player_y_reg;
+        end if;
+    end process player_update_process;
 
     color_mux : process (video_on, wall_on)
     begin

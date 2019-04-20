@@ -7,6 +7,7 @@ entity game_top is
       btn: in std_logic_vector (3 downto 0);
       leds: out std_logic_vector(3 downto 0);
       led: out std_logic;
+      col_led: out std_logic_vector(3 downto 0);
       hsync, vsync: out  std_logic;
 	  vga_r, vga_g, vga_b: out std_logic_vector(7 downto 0);
       vga_clk: out std_logic;
@@ -33,7 +34,7 @@ begin
       port map (clk=>pixel_tick, reset=>reset,
                 btn=>btn_s, video_on=>video_on,
                 pixel_x=>pixel_x, pixel_y=>pixel_y,
-                graph_rgb=>rgb_next, sec_tick=>led);
+                graph_rgb=>rgb_next, sec_tick=>led, col_led=>col_led);
                 
    -- instantiate color mapper
 	color_map_unit: entity work.color_map port map(rgb_reg, vga_r, vga_g, vga_b);
