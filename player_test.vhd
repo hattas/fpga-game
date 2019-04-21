@@ -27,6 +27,8 @@ architecture arch of player_test is
     signal player_y_reg, player_y_next : unsigned(10 downto 0) := to_unsigned(50, 11);
     -- x and y left, right, and middle
     signal player_x_l, player_x_r, player_x_m, player_y_t, player_y_b, player_y_m : unsigned(10 downto 0);
+    -- flag for player being on the ground
+    signal on_ground : std_logic;
     -- player delta regs
     signal player_x_delta_reg, player_x_delta_next : signed(10 downto 0);
     signal player_y_delta_reg, player_y_delta_next : signed(10 downto 0);
@@ -49,37 +51,37 @@ architecture arch of player_test is
     -- rull tile ROM definition
     constant tile_rom : tile_rom_type := 
     (
-    "1111111111111111111111111111111111111111", --0
+        "1111111111111111111111111111111111111111", --0
         "1000000000000000000000000000000000000001", --1
         "1000000000000000000000000000000000000001", --2
-        "1000000000000000000000000000111000000001", --3
-        "1000000000000000000000000000101100000001", --4
-        "1000000000000000000000000000101100000001", --5
-        "1000001111100000000000000000101000000001", --6
-        "1000111001100000000000000000101000000001", --7
-        "1000100001000000000000000000101000000001", --8
-        "1000100001000000000000000000111000000001", --9
-        "1000111111000000000000000000000000000001", --10
-        "1000000000000000000100000000000000000001", --11
-        "1000000000000000001100000000000000000001", --12
-        "1000000000000000001100000000000000000001", --13
-        "1000000000000000000011000000000000000001", --14
-        "1000000000000000000001000000000000000001", --15
-        "1000000000000000001111000000000000000001", --16
-        "1000000000000000000000000000111111100001", --17
-        "1000000000000000000000000001111111100001", --18
-        "1000000011000000000000000011111111000001", --19
-        "1000000011100000000000001111111000000001", --20
-        "1000000000111111111111111111100000000001", --21
-        "1000000000111111111111111000000000000001", --22
+        "1000000000000000000000000000000000000001", --3
+        "1000000000000000000000000000000000000001", --4
+        "1000000000000000000000000000000000000001", --5
+        "1000000000000000000000001110100000000001", --6
+        "1000000000000000000000111000100000011001", --7
+        "1000000000000000000011100011100000000001", --8
+        "1000000000000000011110001110000000000001", --9
+        "1000000000000001110000111000000000000001", --10
+        "1000000000001110000111000000000000000001", --11
+        "1000000000111110111000000000000011110001", --12
+        "1000010001111110000000000000000000000001", --13
+        "1111111111111111111111000000111111111111", --14
+        "1000000000000000000000000000000000000001", --15
+        "1000000000000000000000111111000000000001", --16
+        "1000000000000000000001000000000000000001", --17
+        "1000000000000000001110000000000000000001", --18
+        "1000000000000001111000000000000000000001", --19
+        "1000000000011110000000000000000000000001", --20
+        "1000000000000000000000000000000000000001", --21
+        "1000000000000000000000000000000000000001", --22
         "1000000000000000000000000000000000000001", --23
         "1000000000000000000000000000000000000001", --24
         "1000000000000000000000000000000000000001", --25
         "1000000000000000000000000000000000000001", --26
         "1000000000000000000000000000000000000001", --27
         "1000000000000000000000000000000000000001", --28
-        "1111111111111111111111111111111111111111" --29
-        );
+        "1111111111111111111111111111111111111111"  --29
+    );
 begin
     sec_tick <= second_tick;
     -- registers
@@ -174,7 +176,7 @@ begin
     
     player_update_process: process(refr_tick)
         -- variables to be used inside this process only for collision detection and resolution
-        variable player_x_next_var, player_y_next_var : unsigned(10 downto 0);
+        variable player_x_next_temp, player_y_next_temp : unsigned(10 downto 0);
         variable player_x_l_next, player_x_r_next : unsigned(10 downto 0);
         variable player_y_t_next, player_y_b_next : unsigned(10 downto 0);
         variable tile_l, tile_r, tile_t, tile_b : unsigned(5 downto 0);
@@ -183,75 +185,94 @@ begin
     begin
         if refr_tick = '1' then
             -- get potential update
-            player_x_next_var := player_x_reg + unsigned(player_x_delta_reg);
-            player_y_next_var := player_y_reg + unsigned(player_y_delta_reg);
+            -- these temporary next positions may result in collisions and
+            -- need to be resolved
+            player_x_next_temp := player_x_reg + unsigned(player_x_delta_reg);
+            player_y_next_temp := player_y_reg + unsigned(player_y_delta_reg);
             
-            -- get player left, top, right, bottom coordinates
-            player_x_l_next := player_x_next_var;
-            player_y_t_next := player_y_next_var;
-            player_x_r_next := player_x_next_var + player_size - 1;
-            player_y_b_next := player_y_next_var + player_size - 1;
+            -- get next left, top, right, and bottom positions
+            player_x_l_next := player_x_next_temp;
+            player_y_t_next := player_y_next_temp;
+            player_x_r_next := player_x_next_temp + player_size - 1;
+            player_y_b_next := player_y_next_temp + player_size - 1;
             
-            -- get tiles for x direction
-            -- get next x tiles, but current y tiles
+            -- get tile for next x position and current y position
             tile_l := player_x_l_next(10 downto 5);
             tile_r := player_x_r_next(10 downto 5);
             tile_t := player_y_t(10 downto 5);
             tile_b := player_y_b(10 downto 5);
 
-            -- get wall_on from ROM based on tile position
+            -- check for collisions on the top of the player
             tile_row_var := tile_rom(to_integer(tile_t));
             collision_topleft := tile_row_var(39 - to_integer(tile_l));
             collision_topright := tile_row_var(39 - to_integer(tile_r));
             
-            -- get wall_on from ROM based on tile position
+            -- check for collisions on the bottom of the player
             tile_row_var := tile_rom(to_integer(tile_b));
             collision_botleft := tile_row_var(39 - to_integer(tile_l));
             collision_botright := tile_row_var(39 - to_integer(tile_r));
             col_led <= collision_topleft & collision_topright & collision_botleft & collision_botright;
             
-            -- handle collisions
+            -- resolve collisions in x direction
             -- collision moving left, adjust player to nearest tile to the right
             if (collision_topleft='1' or collision_botleft='1') and player_x_delta_reg<0 then
-                player_x_next_var := (tile_l+1) & "00000";
+                player_x_next_temp := (tile_l+1) & "00000";
             -- collision moving left, adjust player to nearest tile to the right
             elsif  (collision_topright='1' or collision_botright='1') and player_x_delta_reg>0 then
-                player_x_next_var := tile_l & "00000";
+                player_x_next_temp := tile_l & "00000";
             end if;
             
-            -- update left and right
-            player_x_l_next := player_x_next_var;
-            player_x_r_next := player_x_next_var + player_size - 1;
+            -- update left and right next with resolved collisions
+            player_x_l_next := player_x_next_temp;
+            player_x_r_next := player_x_next_temp + player_size - 1;
             
-            -- get tiles for x direction
-            -- get next x tiles, but current y tiles
+            -- now that x collisions are resolved, check y collisions
+            
+            -- get tiles for next x and next y positions
             tile_l := player_x_l_next(10 downto 5);
             tile_r := player_x_r_next(10 downto 5);
             tile_t := player_y_t_next(10 downto 5);
             tile_b := player_y_b_next(10 downto 5);
 
-            -- get wall_on from ROM based on tile position
+            -- check for collisions on the top of the player
             tile_row_var := tile_rom(to_integer(tile_t));
             collision_topleft := tile_row_var(39 - to_integer(tile_l));
             collision_topright := tile_row_var(39 - to_integer(tile_r));
             
-            -- get wall_on from ROM based on tile position
+            -- check for collisions on the bottom of the player 
             tile_row_var := tile_rom(to_integer(tile_b));
             collision_botleft := tile_row_var(39 - to_integer(tile_l));
             collision_botright := tile_row_var(39 - to_integer(tile_r));
-            col_led <= collision_topleft & collision_topright & collision_botleft & collision_botright;
             
-            
+            -- resolve collisions in y direction
             -- collision moving up, adjust player to nearest tile below
             if (collision_topleft='1' or collision_topright='1') and player_y_delta_reg<0 then
-                player_y_next_var := (tile_t+1) & "00000";
+                player_y_next_temp := (tile_t+1) & "00000";
             -- collision moving down, adjust player to nearest tile above
             elsif  (collision_botleft='1' or collision_botright='1') and player_y_delta_reg>0 then
-                player_y_next_var := tile_t & "00000";
+                player_y_next_temp := tile_t & "00000";
             end if;
             
-            player_x_next <= player_x_next_var;
-            player_y_next <= player_y_next_var;
+            -- now that all collisions are resolved, check if player is on the ground
+            -- check one pixel below the bottom of the player (y + player_size - 1 + 1)
+            player_y_b_next := player_y_next_temp + player_size;
+            
+            -- get tiles for next x and next y positions
+            tile_l := player_x_l_next(10 downto 5);
+            tile_r := player_x_r_next(10 downto 5);
+            tile_b := player_y_b_next(10 downto 5);
+            
+            -- check for collisions with pixel under the player
+            tile_row_var := tile_rom(to_integer(tile_b));
+            collision_botleft := tile_row_var(39 - to_integer(tile_l));
+            collision_botright := tile_row_var(39 - to_integer(tile_r));
+            
+            -- flag for player standing on the ground
+            on_ground <= collision_botleft or collision_botright;
+            col_led <= on_ground & on_ground & on_ground & on_ground;
+            
+            player_x_next <= player_x_next_temp;
+            player_y_next <= player_y_next_temp;
         else
             player_x_next <= player_x_reg;
             player_y_next <= player_y_reg;
