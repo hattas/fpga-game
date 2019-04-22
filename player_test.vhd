@@ -16,7 +16,7 @@ end player_test;
 
 architecture arch of player_test is
     -- 60 Hz and 1 Hz reference ticks
-    signal refr_tick, second_tick : std_logic;
+    signal refr_tick, gravity_tick, second_tick : std_logic;
     -- signals for different entities being shown
     signal wall_on, player_on : std_logic;
     -- pixel coordinates
@@ -27,8 +27,8 @@ architecture arch of player_test is
     signal player_y_reg, player_y_next : unsigned(10 downto 0) := to_unsigned(50, 11);
     -- x and y left, right, and middle
     signal player_x_l, player_x_r, player_x_m, player_y_t, player_y_b, player_y_m : unsigned(10 downto 0);
-    -- flag for player being on the ground
-    signal on_ground : std_logic;
+    -- movement flags
+    signal moving_left, moving_right, on_ground, on_ceiling : std_logic;
     -- player delta regs
     signal player_x_delta_reg, player_x_delta_next : signed(10 downto 0);
     signal player_y_delta_reg, player_y_delta_next : signed(10 downto 0);
@@ -110,7 +110,8 @@ begin
     -- i.e., when the screen is refreshed (60 Hz)
     refr_tick <= '1' when (pix_y = 481) and (pix_x = 0) else
                  '0';
-    second_tick_unit : entity work.clk_divider port map(refr_tick, second_tick);
+    second_tick_unit : entity work.clk_divider port map(refr_tick, second_tick, 60);
+    gravity_tick_unit : entity work.clk_divider port map(refr_tick, gravity_tick, 2);
  
     -- index onto tile grid 
     tile_x <= world_pix_x(10 downto 5);
@@ -153,23 +154,24 @@ begin
     player_delta_process : process (refr_tick)
     begin
         if rising_edge(refr_tick) then
-            --left
+            -- x deltas
+            -- left
             if btn(3) = '1' then
-                player_x_delta_next <= to_signed(-1, 11);
-                --right
-            elsif btn(0) = '1' then
-                player_x_delta_next <= to_signed(1, 11);
+                player_x_delta_next <= to_signed(-4, 11);
+            -- right
+            elsif btn(2) = '1' then
+                player_x_delta_next <= to_signed(4, 11);
             else
                 player_x_delta_next <= (others => '0');
             end if;
-            --down
-            if btn(2) = '1' then
-                player_y_delta_next <= to_signed(1, 11);
-                --up
-            elsif btn(1) = '1' then
-                player_y_delta_next <= to_signed(-1, 11);
-            else
-                player_y_delta_next <= (others => '0');
+            
+            -- y deltas
+            -- player on ground and press jump button
+            if btn(0) = '1' and on_ground = '1' then
+                player_y_delta_next <= to_signed(-20, 11);
+            -- apply gravity
+            elsif player_y_delta_reg < 20 and gravity_tick = '1' then
+                player_y_delta_next <= player_y_delta_reg + 1;
             end if;
         end if;
     end process player_delta_process;
@@ -211,7 +213,6 @@ begin
             tile_row_var := tile_rom(to_integer(tile_b));
             collision_botleft := tile_row_var(39 - to_integer(tile_l));
             collision_botright := tile_row_var(39 - to_integer(tile_r));
-            col_led <= collision_topleft & collision_topright & collision_botleft & collision_botright;
             
             -- resolve collisions in x direction
             -- collision moving left, adjust player to nearest tile to the right

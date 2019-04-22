@@ -4,11 +4,13 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 entity color_test is
    port(
-        clk, reset: std_logic;
-        btn: std_logic_vector(1 downto 0);
-        video_on: in std_logic;
-        pixel_x,pixel_y: in std_logic_vector(9 downto 0);
-        graph_rgb: out std_logic_vector(2 downto 0)
+        clk, reset : std_logic;
+        btn : std_logic_vector(3 downto 0);
+        video_on : in std_logic;
+        pixel_x, pixel_y : in std_logic_vector(9 downto 0);
+        graph_rgb : out std_logic_vector(2 downto 0);
+        sec_tick : out std_logic;
+        col_led: out std_logic_vector(3 downto 0)
    );
 end color_test;
 
@@ -58,21 +60,21 @@ begin
           graph_rgb <= "000"; --blank
       else
 			if pix_x < 80 then
-				graph_rgb <= std_logic_vector(color_add + 0);
+				graph_rgb <= "000";
 			elsif pix_x < 160 then
-				graph_rgb <= std_logic_vector(color_add + 1);
+				graph_rgb <= "001";
 			elsif pix_x < 240 then
-				graph_rgb <= std_logic_vector(color_add + 2);
+				graph_rgb <= "010";
 			elsif pix_x < 320 then
-				graph_rgb <= std_logic_vector(color_add + 3);
+				graph_rgb <= "011";
 			elsif pix_x < 400 then
-				graph_rgb <= std_logic_vector(color_add + 4);
+				graph_rgb <= "100";
 			elsif pix_x < 480 then
-				graph_rgb <= std_logic_vector(color_add + 5);
+				graph_rgb <= "101";
 			elsif pix_x < 560 then
-				graph_rgb <= std_logic_vector(color_add + 6);
+				graph_rgb <= "110";
 			else
-				graph_rgb <= std_logic_vector(color_add + 7);
+				graph_rgb <= "111";
 			end if;
       end if;
    end process;
