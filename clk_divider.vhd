@@ -5,25 +5,25 @@ use ieee.numeric_std.all;
 
 entity clk_divider is
    port(
-        clk: in std_logic;
-        refr_tick: in std_logic;
-        second_tick: out std_logic
+        in_tick: in std_logic;
+        out_tick: out std_logic;
+        time_count: in integer
    );
 end clk_divider;
 
 architecture arch of clk_divider is
-    signal count: integer := 0;
+    signal count: integer := 1;
 begin
     -- generate second tick
-    process (refr_tick)
+    process (in_tick)
     begin
-        if rising_edge(refr_tick) then
+        if rising_edge(in_tick) then
             count <= count + 1;
-            if count = 59 then
-                second_tick <= '1';
-                count <= 0;
+            if count = time_count then
+                out_tick <= '1';
+                count <= 1;
             else
-                second_tick <= '0';
+                out_tick <= '0';
             end if;
         end if;
     end process;
