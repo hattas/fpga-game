@@ -157,22 +157,22 @@ begin
             -- x deltas
             -- left
             if btn(3) = '1' then
-                if player_x_delta_reg > -4 then
+                if player_x_delta_reg > -4 and gravity_tick = '1' then
                     player_x_delta_next <= player_x_delta_reg - 1;
                 end if;
                 moving_left <= '1';
                 moving_right <= '0';
             -- right
             elsif btn(2) = '1' then
-                if player_x_delta_reg < 4 then
+                if player_x_delta_reg < 4 and gravity_tick = '1' then
                     player_x_delta_next <= player_x_delta_reg + 1;
                 end if;
                 moving_left <= '0';
                 moving_right <= '1';
             else
-                if player_x_delta_reg > 0 then
+                if player_x_delta_reg > 0 and gravity_tick = '1' then
                     player_x_delta_next <= player_x_delta_reg - 1;
-                elsif player_x_delta_reg < 0 then
+                elsif player_x_delta_reg < 0 and gravity_tick = '1' then
                     player_x_delta_next <= player_x_delta_reg + 1;
                 end if;
                 moving_left <= '0';
