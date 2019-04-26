@@ -31,7 +31,7 @@ begin
                
    -- instantiate graphic generator
    pixel_generator_unit: entity work.player_test
-      port map (clk=>pixel_tick, reset=>reset,
+      port map (clk=>clk, reset=>reset,
                 btn=>btn_s, video_on=>video_on,
                 pixel_x=>pixel_x, pixel_y=>pixel_y,
                 graph_rgb=>rgb_next, sec_tick=>led, col_led=>col_led);

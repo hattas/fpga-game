@@ -28,7 +28,7 @@ architecture arch of player_test is
     -- x and y left, right, and middle
     signal player_x_l, player_x_r, player_x_m, player_y_t, player_y_b, player_y_m : unsigned(10 downto 0);
     -- movement flags
-    signal moving_left, moving_right, on_ground, on_ceiling : std_logic;
+    signal moving_left, moving_right, on_ground, on_ceiling: std_logic;
     -- player delta regs
     signal player_x_delta_reg, player_x_delta_next : signed(10 downto 0);
     signal player_y_delta_reg, player_y_delta_next : signed(10 downto 0);
@@ -111,7 +111,7 @@ begin
     refr_tick <= '1' when (pix_y = 481) and (pix_x = 0) else
                  '0';
     second_tick_unit : entity work.clk_divider port map(refr_tick, second_tick, 60);
-    gravity_tick_unit : entity work.clk_divider port map(refr_tick, gravity_tick, 2);
+    gravity_tick_unit : entity work.clk_divider port map(refr_tick, gravity_tick, 6);
  
     -- index onto tile grid 
     tile_x <= world_pix_x(10 downto 5);
@@ -168,7 +168,11 @@ begin
             -- y deltas
             -- player on ground and press jump button
             if btn(0) = '1' and on_ground = '1' then
-                player_y_delta_next <= to_signed(-20, 11);
+                player_y_delta_next <= to_signed(-5, 11);
+            elsif on_ground = '1' then
+                player_y_delta_next <= (others => '0');
+            elsif on_ceiling = '1' then
+                player_y_delta_next <= to_signed(1, 11);
             -- apply gravity
             elsif player_y_delta_reg < 20 and gravity_tick = '1' then
                 player_y_delta_next <= player_y_delta_reg + 1;
@@ -270,7 +274,27 @@ begin
             
             -- flag for player standing on the ground
             on_ground <= collision_botleft or collision_botright;
-            col_led <= on_ground & on_ground & on_ground & on_ground;
+            
+            -- repeat the ground check steps with the pixel above the player
+            -- to check if the player is touching the cieling
+            if player_y_next_temp > 0 then
+                player_y_t_next := player_y_next_temp - 1;
+                
+                -- get tiles for next x and next y positions
+                tile_l := player_x_l_next(10 downto 5);
+                tile_r := player_x_r_next(10 downto 5);
+                tile_t := player_y_t_next(10 downto 5);
+                
+                -- check for collisions with pixel under the player
+                tile_row_var := tile_rom(to_integer(tile_t));
+                collision_topleft := tile_row_var(39 - to_integer(tile_l));
+                collision_topright := tile_row_var(39 - to_integer(tile_r));
+                
+                -- flag for player standing on the ground
+                on_ceiling <= collision_topleft or collision_topright;
+            else
+                on_ceiling <= '1'; -- player is at the top of the world
+            end if;
             
             player_x_next <= player_x_next_temp;
             player_y_next <= player_y_next_temp;
@@ -294,4 +318,6 @@ begin
             end if;
         end if;
     end process color_mux;
+    
+    col_led <= on_ground & on_ceiling & '0' & '0';
 end arch;
