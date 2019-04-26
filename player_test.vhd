@@ -157,12 +157,26 @@ begin
             -- x deltas
             -- left
             if btn(3) = '1' then
-                player_x_delta_next <= to_signed(-4, 11);
+                if player_x_delta_reg > -4 then
+                    player_x_delta_next <= player_x_delta_reg - 1;
+                end if;
+                moving_left <= '1';
+                moving_right <= '0';
             -- right
             elsif btn(2) = '1' then
-                player_x_delta_next <= to_signed(4, 11);
+                if player_x_delta_reg < 4 then
+                    player_x_delta_next <= player_x_delta_reg + 1;
+                end if;
+                moving_left <= '0';
+                moving_right <= '1';
             else
-                player_x_delta_next <= (others => '0');
+                if player_x_delta_reg > 0 then
+                    player_x_delta_next <= player_x_delta_reg - 1;
+                elsif player_x_delta_reg < 0 then
+                    player_x_delta_next <= player_x_delta_reg + 1;
+                end if;
+                moving_left <= '0';
+                moving_right <= '0';
             end if;
             
             -- y deltas
