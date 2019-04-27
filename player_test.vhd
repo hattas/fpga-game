@@ -9,8 +9,7 @@ entity player_test is
         video_on : in std_logic;
         pixel_x, pixel_y : in std_logic_vector(9 downto 0);
         graph_rgb : out std_logic_vector(2 downto 0);
-        sec_tick : out std_logic;
-        col_led: out std_logic_vector(3 downto 0)
+        led : out std_logic_vector(9 downto 0) := "0000000000"
     );
 end player_test;
 
@@ -83,7 +82,6 @@ architecture arch of player_test is
         "1111111111111111111111111111111111111111"  --29
     );
 begin
-    sec_tick <= second_tick;
     -- registers
     process (clk, reset)
     begin
@@ -333,5 +331,8 @@ begin
         end if;
     end process color_mux;
     
-    col_led <= on_ground & on_ceiling & '0' & '0';
+	 led(9) <= second_tick;
+	 led(8) <= on_ground;
+	 led(7) <= on_ceiling;
+	 led(3 downto 0) <= btn;
 end arch;
