@@ -13,12 +13,11 @@ end color_map;
 architecture arch of color_map is
 	signal vga_rgb: std_logic_vector(23 downto 0);
 begin
-	
-	
+
 	process(rgb)
 	begin
 		 case rgb is
-			  when "000" => vga_rgb <= x"000000"; --black
+			  when "000" => vga_rgb <= x"222222"; --black
 			  when "001" => vga_rgb <= x"003F3F";
 			  when "010" => vga_rgb <= x"007F7F";
 			  when "011" => vga_rgb <= x"00BFBF";
