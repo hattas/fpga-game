@@ -4,8 +4,9 @@ use ieee.std_logic_1164.all;
 entity game_top is
     port (
       clk, reset: in std_logic;
-      btn: in std_logic_vector (3 downto 0);
-      led: out std_logic_vector(9 downto 0);
+		nes_data : in std_logic;
+		nes_clock, nes_latch : out std_logic;
+      led: out std_logic_vector(9 downto 0) := (others => '0');
       hsync, vsync: out  std_logic;
 	   vga_r, vga_g, vga_b: out std_logic_vector(7 downto 0);
       vga_clk: out std_logic;
@@ -18,7 +19,9 @@ architecture arch of game_top is
    signal pixel_x, pixel_y: std_logic_vector (9 downto 0);
    signal video_on, pixel_tick: std_logic;
    signal rgb_reg, rgb_next: std_logic_vector(2 downto 0);
-   signal btn_s: std_logic_vector(3 downto 0);
+	signal nes_button : std_logic_vector(7 downto 0);
+	signal nes_latch_int : std_logic;
+	signal nes_clock_int : std_logic;
 begin
    -- instantiate VGA sync
    vga_sync_unit: entity work.vga_sync
@@ -28,12 +31,25 @@ begin
                pixel_x=>pixel_x, pixel_y=>pixel_y);
                
    -- instantiate graphic generator
-   pixel_generator_unit: entity work.player_test
+   pixel_generator_unit: entity work.nes_test
       port map (clk=>clk, reset=>reset,
-                btn=>btn_s, video_on=>video_on,
+                btn=>nes_button, video_on=>video_on,
                 pixel_x=>pixel_x, pixel_y=>pixel_y,
                 graph_rgb=>rgb_next, led=>led);
-                
+					 
+	-- instantiate NES FSM
+   nes_fsm_unit: entity work.nes_fsm
+      port map (clk=>clk, latch=>nes_latch_int,
+                pulse=>nes_clock_int, data=>nes_data,
+                button=>nes_button);
+					 
+	-- instantiate NES clock unit
+   nes_clock_unit: entity work.nes_clocks
+      port map (clk=>clk, nes_clk=>nes_clock_int, nes_latch=>nes_latch_int);
+   
+	nes_latch <= nes_latch_int;
+	nes_clock <= nes_clock_int;
+
    -- instantiate color mapper
 	color_map_unit: entity work.color_map port map(rgb_reg, vga_r, vga_g, vga_b);
     
@@ -48,5 +64,4 @@ begin
    end process;
    
    vga_clk <= pixel_tick;
-   btn_s <= not btn;
 end arch;
