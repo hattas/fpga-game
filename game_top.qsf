@@ -104,6 +104,15 @@ set_location_assignment PIN_F15 -to vga_b[5]
 set_location_assignment PIN_G15 -to vga_b[6]
 set_location_assignment PIN_J14 -to vga_b[7]
 
+## NES pins
+set_location_assignment PIN_AJ22 -to nes_clock
+set_location_assignment PIN_AG22 -to nes_latch
+set_location_assignment PIN_AF23 -to nes_data
+
+set_location_assignment PIN_AB17 -to three
+
+
+
 ##### end our assignments
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
@@ -112,6 +121,9 @@ set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+set_global_assignment -name VHDL_FILE nes_fsm.vhd
+set_global_assignment -name VHDL_FILE nes_clocks.vhd
+set_global_assignment -name VHDL_FILE nes_test.vhd
 set_global_assignment -name VHDL_FILE clk_divider.vhd
 set_global_assignment -name VHDL_FILE player_test.vhd
 set_global_assignment -name VHDL_FILE vga_sync.vhd
