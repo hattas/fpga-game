@@ -35,7 +35,7 @@ begin
           screen_on <= '0'; --blank
       else
 			if pix_x < 80 then
-				screen_on <= btn(1);
+				screen_on <= btn(0);
 			elsif pix_x < 160 then
 				screen_on <= btn(1);
 			elsif pix_x < 240 then

@@ -31,7 +31,7 @@ begin
                pixel_x=>pixel_x, pixel_y=>pixel_y);
                
    -- instantiate graphic generator
-   pixel_generator_unit: entity work.nes_test
+   pixel_generator_unit: entity work.player_test
       port map (clk=>clk, reset=>reset,
                 btn=>nes_button, video_on=>video_on,
                 pixel_x=>pixel_x, pixel_y=>pixel_y,
