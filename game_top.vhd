@@ -5,6 +5,7 @@ entity game_top is
     port (
 		clk: in std_logic;
 		sw : in std_logic_vector(9 downto 0);
+		btn : in std_logic_vector(3 downto 0);
 		nes_data : in std_logic;
 		nes_clock, nes_latch : out std_logic;
 		led: out std_logic_vector(9 downto 0) := (others => '0');
@@ -22,7 +23,7 @@ architecture arch of game_top is
     signal pixel_x, pixel_y: std_logic_vector (9 downto 0);
     signal video_on, pixel_tick: std_logic;
     signal rgb_reg, rgb_next: std_logic_vector(2 downto 0);
-	signal nes_button : std_logic_vector(7 downto 0);
+	signal btn_s, btn_board, nes_button : std_logic_vector(7 downto 0);
 	signal hex0, hex1, hex2, hex3, hex4, hex5 : std_logic_vector(3 downto 0);
 	signal nes_latch_int : std_logic;
 	signal nes_clock_int : std_logic;
@@ -39,7 +40,7 @@ begin
    -- instantiate graphic generator
    pixel_generator_unit: entity work.player_test
       port map (clk=>clk, reset=>reset,
-                btn=>nes_button, video_on=>video_on,
+                btn=>btn_s, video_on=>video_on,
                 pixel_x=>pixel_x, pixel_y=>pixel_y,
                 graph_rgb=>rgb_next, led=>led,
 				hex0=>hex0, hex1=>hex1, hex2=>hex2,
@@ -73,6 +74,13 @@ begin
          end if;
       end if;
    end process;
+   
+   
+   btn_board <= not btn(2) & not btn(3) & "0000" & not btn(0) & '0';
+   with sw(4) select btn_s <=
+		nes_button when '0',
+		btn_board when '1';
+		
    
    vga_clk <= pixel_tick;
 end arch;

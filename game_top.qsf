@@ -162,8 +162,6 @@ set_location_assignment PIN_AJ22 -to nes_clock
 set_location_assignment PIN_AG22 -to nes_latch
 set_location_assignment PIN_AF23 -to nes_data
 
-set_location_assignment PIN_AB17 -to three
-
 
 
 ##### end our assignments
