@@ -9,13 +9,15 @@ entity player_test is
         video_on : in std_logic;
         pixel_x, pixel_y : in std_logic_vector(9 downto 0);
         graph_rgb : out std_logic_vector(2 downto 0);
-        led : out std_logic_vector(9 downto 0)
+        led : out std_logic_vector(9 downto 0);
+		hex0, hex1, hex2, hex3, hex4, hex5 : out std_logic_vector(3 downto 0) := (others => '0')
     );
 end player_test;
 
 architecture arch of player_test is
     -- 60 Hz and 1 Hz reference ticks
     signal refr_tick, gravity_tick, second_tick : std_logic;
+	signal second_counter : unsigned(7 downto 0) := (others => '0');
     -- signals for different entities being shown
     signal wall_on, player_on : std_logic;
     -- pixel coordinates
@@ -338,10 +340,18 @@ begin
                  '0';
     second_tick_unit : entity work.clk_divider port map(refr_tick, second_tick, 60);
     gravity_tick_unit : entity work.clk_divider port map(refr_tick, gravity_tick, 6);
- 
+	second_counter <= second_counter + 1 when rising_edge(second_tick);
+	hex4 <= std_logic_vector(second_counter(3 downto 0));
+	hex5 <= std_logic_vector(second_counter(7 downto 4));
+	
     -- index onto tile grid 
     tile_x <= world_pix_x(10 downto 5);
     tile_y <= world_pix_y(10 downto 5);
+	-- show tile coordinates on 7 segment display
+	hex0 <= std_logic_vector(player_y_reg(8 downto 5));
+	hex1 <= "00" & std_logic_vector(player_y_reg(10 downto 9));
+	hex2 <= std_logic_vector(player_x_reg(8 downto 5));
+	hex3 <= "00" & std_logic_vector(player_x_reg(10 downto 9));
 
     -- get wall_on from ROM based on tile position
     tile_row <= tile_rom(to_integer(tile_y));

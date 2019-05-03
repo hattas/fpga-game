@@ -12,7 +12,8 @@ entity game_top is
 		vga_r, vga_g, vga_b: out std_logic_vector(7 downto 0);
 		vga_clk: out std_logic;
 		vga_sync: out std_logic := '0';
-		vga_blank: out std_logic := '1'
+		vga_blank: out std_logic := '1';
+		ssd0, ssd1, ssd2, ssd3, ssd4, ssd5 : out std_logic_vector(6 downto 0)
 	);
 end game_top;
 
@@ -22,6 +23,7 @@ architecture arch of game_top is
     signal video_on, pixel_tick: std_logic;
     signal rgb_reg, rgb_next: std_logic_vector(2 downto 0);
 	signal nes_button : std_logic_vector(7 downto 0);
+	signal hex0, hex1, hex2, hex3, hex4, hex5 : std_logic_vector(3 downto 0);
 	signal nes_latch_int : std_logic;
 	signal nes_clock_int : std_logic;
 begin
@@ -39,7 +41,9 @@ begin
       port map (clk=>clk, reset=>reset,
                 btn=>nes_button, video_on=>video_on,
                 pixel_x=>pixel_x, pixel_y=>pixel_y,
-                graph_rgb=>rgb_next, led=>led);
+                graph_rgb=>rgb_next, led=>led,
+				hex0=>hex0, hex1=>hex1, hex2=>hex2,
+				hex3=>hex3, hex4=>hex4, hex5=>hex5);
 					 
 	-- instantiate NES FSM
    nes_fsm_unit: entity work.nes_fsm
@@ -56,6 +60,9 @@ begin
 
    -- instantiate color mapper
 	color_map_unit: entity work.color_map port map(sw, rgb_reg, vga_r, vga_g, vga_b);
+	
+	-- 7 segment unit
+	sseg_unit : entity work.sseg port map(hex0, hex1, hex2, hex3, hex4, hex5, ssd0, ssd1, ssd2, ssd3, ssd4, ssd5);
     
    -- rgb buffer
    process (clk)
