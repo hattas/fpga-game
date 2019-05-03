@@ -16,7 +16,7 @@ end player_test;
 
 architecture arch of player_test is
     -- 60 Hz and 1 Hz reference ticks
-    signal refr_tick, refr_tick_next, refr_pulse, second_tick, grav_tick : std_logic;
+    signal refr_tick, refr_tick_next, refr_pulse, second_tick, horiz_tick, grav_tick : std_logic;
 	signal second_counter : unsigned(7 downto 0) := (others => '0');
 	signal grav_counter, grav_counter_next : integer := 0;
     -- signals for different entities being shown
@@ -343,7 +343,8 @@ begin
 	refr_tick_next <= '1' when (pix_y = 481) else '0';
 	refr_pulse <= '1' when refr_tick = '0' and refr_tick_next = '1' else '0';
     second_tick_unit : entity work.clk_divider port map(refr_tick, second_tick, 60);
-	gravit_tick_unit : entity work.clk_divider port map(refr_tick, grav_tick, 3);
+	horizo_tick_unit : entity work.clk_divider port map(refr_tick, horiz_tick, 3);
+	gravit_tick_unit : entity work.gravity_divider port map(on_ground, refr_tick, grav_tick, 3);
 	second_counter <= second_counter + 1 when rising_edge(second_tick);
 	hex4 <= std_logic_vector(second_counter(3 downto 0));
 	hex5 <= std_logic_vector(second_counter(7 downto 4));
@@ -372,7 +373,10 @@ begin
         '1' when (player_x_l <= world_pix_x) and (world_pix_x <= player_x_r) and
         (player_y_t <= world_pix_y) and (world_pix_y <= player_y_b) else
         '0';
-
+	
+	
+	
+	
     camera_process : process (player_x_reg, player_y_reg)
     begin
         if player_x_m < viewport_size_x_half then
@@ -407,7 +411,7 @@ begin
             -- left
             if btn_left = '1' then
 				if on_left = '0' then
-					if player_x_delta_reg > -8  and grav_tick = '1' then
+					if player_x_delta_reg > -8  and horiz_tick = '1' then
 						if on_ground = '1' then
 							player_x_delta_next <= player_x_delta_reg - 2;
 						else
@@ -422,7 +426,7 @@ begin
             -- right
             elsif btn_right = '1' then
 				if on_right = '0' then
-					if player_x_delta_reg < 8  and grav_tick = '1' then
+					if player_x_delta_reg < 8  and horiz_tick = '1' then
 						if on_ground = '1' then
 							player_x_delta_next <= player_x_delta_reg + 2;
 						else
@@ -437,12 +441,12 @@ begin
             else
 			    if (on_left = '1' and moving_left = '1') or (on_right = '1' and moving_right = '1') then
 					player_x_delta_next <= (others => '0');
-                elsif player_x_delta_reg > 0  and grav_tick = '1' then
+                elsif player_x_delta_reg > 0  and horiz_tick = '1' then
                     player_x_delta_next <= player_x_delta_reg - 2;
-                elsif player_x_delta_reg < 0  and grav_tick = '1' then
+                elsif player_x_delta_reg < 0  and horiz_tick = '1' then
                     player_x_delta_next <= player_x_delta_reg + 2;
                 end if;
-				if player_x_delta_reg >= -1 and player_x_delta_reg <= 1 and grav_tick = '1' then
+				if player_x_delta_reg >= -1 and player_x_delta_reg <= 1 and horiz_tick = '1' then
 					player_x_delta_next <= (others => '0');
 				end if;
             end if;
