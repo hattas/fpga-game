@@ -3,26 +3,30 @@ library ieee;
 use ieee.std_logic_1164.all;
 entity game_top is
     port (
-      clk, reset: in std_logic;
+		clk: in std_logic;
+		sw : in std_logic_vector(9 downto 0);
 		nes_data : in std_logic;
 		nes_clock, nes_latch : out std_logic;
-      led: out std_logic_vector(9 downto 0) := (others => '0');
-      hsync, vsync: out  std_logic;
-	   vga_r, vga_g, vga_b: out std_logic_vector(7 downto 0);
-      vga_clk: out std_logic;
-      vga_sync: out std_logic := '0';
-      vga_blank: out std_logic := '1'
-   );
+		led: out std_logic_vector(9 downto 0) := (others => '0');
+		hsync, vsync: out  std_logic;
+		vga_r, vga_g, vga_b: out std_logic_vector(7 downto 0);
+		vga_clk: out std_logic;
+		vga_sync: out std_logic := '0';
+		vga_blank: out std_logic := '1'
+	);
 end game_top;
 
 architecture arch of game_top is
-   signal pixel_x, pixel_y: std_logic_vector (9 downto 0);
-   signal video_on, pixel_tick: std_logic;
-   signal rgb_reg, rgb_next: std_logic_vector(2 downto 0);
+	signal reset : std_logic;
+    signal pixel_x, pixel_y: std_logic_vector (9 downto 0);
+    signal video_on, pixel_tick: std_logic;
+    signal rgb_reg, rgb_next: std_logic_vector(2 downto 0);
 	signal nes_button : std_logic_vector(7 downto 0);
 	signal nes_latch_int : std_logic;
 	signal nes_clock_int : std_logic;
 begin
+	reset <= sw(9);
+
    -- instantiate VGA sync
    vga_sync_unit: entity work.vga_sync
       port map(clk=>clk, reset=>reset,
@@ -51,7 +55,7 @@ begin
 	nes_clock <= nes_clock_int;
 
    -- instantiate color mapper
-	color_map_unit: entity work.color_map port map(rgb_reg, vga_r, vga_g, vga_b);
+	color_map_unit: entity work.color_map port map(sw, rgb_reg, vga_r, vga_g, vga_b);
     
    -- rgb buffer
    process (clk)
