@@ -29,7 +29,7 @@ architecture arch of player_test is
     -- x and y left, right, and middle
     signal player_x_l, player_x_r, player_x_m, player_y_t, player_y_b, player_y_m : unsigned(10 downto 0);
     -- movement flags
-    signal moving_left, moving_right, on_ground, on_ceiling: std_logic;
+    signal moving_left, moving_right, on_ground, on_ceiling, on_left, on_right: std_logic;
     -- player delta regs
     signal player_x_delta_reg, player_x_delta_next : signed(10 downto 0);
     signal player_y_delta_reg, player_y_delta_next : signed(10 downto 0);
@@ -406,7 +406,9 @@ begin
                 moving_left <= '0';
                 moving_right <= '1';
             else
-                if player_x_delta_reg > 0 and gravity_tick = '1' then
+			    if on_left = '1' or on_right = '1' then
+					player_x_delta_next <= (others => '0');
+                elsif player_x_delta_reg > 0 and gravity_tick = '1' then
                     player_x_delta_next <= player_x_delta_reg - 1;
                 elsif player_x_delta_reg < 0 and gravity_tick = '1' then
                     player_x_delta_next <= player_x_delta_reg + 1;
@@ -436,6 +438,7 @@ begin
         variable tile_l, tile_r, tile_t, tile_b : unsigned(5 downto 0);
         variable collision_topleft, collision_topright, collision_botleft, collision_botright : std_logic;
         variable tile_row_var : std_logic_vector(39 downto 0);
+		variable temp_col : std_logic;
     begin
         if refr_tick = '1' then
             -- get potential update
@@ -444,6 +447,7 @@ begin
             player_x_next_temp := player_x_reg + unsigned(player_x_delta_reg);
             player_y_next_temp := player_y_reg + unsigned(player_y_delta_reg);
             
+			---------- HORIZONTAL COLLISIONS ----------
             -- get next left, top, right, and bottom positions
             player_x_l_next := player_x_next_temp;
             player_y_t_next := player_y_next_temp;
@@ -455,7 +459,7 @@ begin
             tile_r := player_x_r_next(10 downto 5);
             tile_t := player_y_t(10 downto 5);
             tile_b := player_y_b(10 downto 5);
-
+			
             -- check for collisions on the top of the player
             tile_row_var := tile_rom(to_integer(tile_t));
             collision_topleft := tile_row_var(39 - to_integer(tile_l));
@@ -478,9 +482,10 @@ begin
             -- update left and right next with resolved collisions
             player_x_l_next := player_x_next_temp;
             player_x_r_next := player_x_next_temp + player_size - 1;
-            
+            ---------- END HORIZONTAL COLLISIONS ----------
+			
+			---------- VERTICAL COLLISIONS ----------
             -- now that x collisions are resolved, check y collisions
-            
             -- get tiles for next x and next y positions
             tile_l := player_x_l_next(10 downto 5);
             tile_r := player_x_r_next(10 downto 5);
@@ -505,44 +510,96 @@ begin
             elsif  (collision_botleft='1' or collision_botright='1') and player_y_delta_reg>0 then
                 player_y_next_temp := tile_t & "00000";
             end if;
-            
+            ---------- END VERTICAL COLLISIONS ----------
+			
+			
+			---------- VERTICAL BORDER COLLISIONS ----------
             -- now that all collisions are resolved, check if player is on the ground
             -- check one pixel below the bottom of the player (y + player_size - 1 + 1)
+			-- check one pixel above the top of the player (y - 1)
+			-- need this check so the value doesn't go below 0
+			if player_y_next_temp > 0 then
+				player_y_t_next := player_y_next_temp - 1;
+				temp_col := '0';
+			else
+				player_y_t_next := player_y_next_temp;
+				temp_col := '1';
+			end if;
             player_y_b_next := player_y_next_temp + player_size;
             
             -- get tiles for next x and next y positions
             tile_l := player_x_l_next(10 downto 5);
             tile_r := player_x_r_next(10 downto 5);
+			tile_t := player_y_t_next(10 downto 5);
             tile_b := player_y_b_next(10 downto 5);
             
-            -- check for collisions with pixel under the player
+			-- check for collisions with ceiling
+			tile_row_var := tile_rom(to_integer(tile_t));
+            collision_topleft := tile_row_var(39 - to_integer(tile_l));
+            collision_topright := tile_row_var(39 - to_integer(tile_r));
+			
+			-- check for collisions with floor
             tile_row_var := tile_rom(to_integer(tile_b));
             collision_botleft := tile_row_var(39 - to_integer(tile_l));
             collision_botright := tile_row_var(39 - to_integer(tile_r));
             
             -- flag for player standing on the ground
             on_ground <= collision_botleft or collision_botright;
+			
+			-- flag for player hitting ceiling
+			if temp_col = '1' then
+				on_ceiling <= '1';
+			else
+				on_ceiling <= collision_topleft or collision_topright;
+			end if;
+			---------- END VERTICAL BORDER COLLISIONS ----------
             
-            -- repeat the ground check steps with the pixel above the player
-            -- to check if the player is touching the cieling
-            if player_y_next_temp > 0 then
-                player_y_t_next := player_y_next_temp - 1;
-                
-                -- get tiles for next x and next y positions
-                tile_l := player_x_l_next(10 downto 5);
-                tile_r := player_x_r_next(10 downto 5);
-                tile_t := player_y_t_next(10 downto 5);
-                
-                -- check for collisions with pixel under the player
-                tile_row_var := tile_rom(to_integer(tile_t));
-                collision_topleft := tile_row_var(39 - to_integer(tile_l));
-                collision_topright := tile_row_var(39 - to_integer(tile_r));
-                
-                -- flag for player standing on the ground
-                on_ceiling <= collision_topleft or collision_topright;
-            else
-                on_ceiling <= '1'; -- player is at the top of the world
-            end if;
+			
+			---------- HORIZONTAL BORDER COLLISIONS ----------
+            -- now that all collisions are resolved, check if player is on the ground
+            -- check one pixel below the bottom of the player (y + player_size - 1 + 1)
+			-- check one pixel above the top of the player (y - 1)
+			-- need this check so the value doesn't go below 0
+			if player_x_next_temp > 0 then
+				player_x_l_next := player_x_next_temp - 1;
+				temp_col := '0';
+			else
+				player_x_l_next := player_x_next_temp;
+				temp_col := '1';
+			end if;
+            player_x_r_next := player_x_next_temp + player_size;
+			
+			-- restore vertical boundaries
+			player_y_t_next := player_y_next_temp;
+            player_y_b_next := player_y_next_temp + player_size - 1;
+            
+            -- get tiles for next x and next y positions
+            tile_l := player_x_l_next(10 downto 5);
+            tile_r := player_x_r_next(10 downto 5);
+			tile_t := player_y_t_next(10 downto 5);
+            tile_b := player_y_b_next(10 downto 5);
+            
+			-- check for collisions with ceiling
+			tile_row_var := tile_rom(to_integer(tile_t));
+            collision_topleft := tile_row_var(39 - to_integer(tile_l));
+            collision_topright := tile_row_var(39 - to_integer(tile_r));
+			
+			-- check for collisions with floor
+            tile_row_var := tile_rom(to_integer(tile_b));
+            collision_botleft := tile_row_var(39 - to_integer(tile_l));
+            collision_botright := tile_row_var(39 - to_integer(tile_r));
+            
+            -- flag for player standing on the ground
+            on_right <= collision_topright or collision_botright;
+			
+			-- flag for player hitting ceiling
+			if temp_col = '1' then
+				on_left <= '1';
+			else
+				on_left <= collision_topleft or collision_botleft;
+			end if;
+			---------- END HORIZONTAL BORDER COLLISIONS ----------
+            
             
             player_x_next <= player_x_next_temp;
             player_y_next <= player_y_next_temp;
@@ -596,6 +653,8 @@ begin
 	 led(9) <= second_tick;
 	 led(8) <= on_ground;
 	 led(7) <= on_ceiling;
+	 led(6) <= on_left;
+	 led(5) <= on_right;
 	 led(2) <= btn_left;
 	 led(1) <= btn_right;
 	 led(0) <= btn_jump;
