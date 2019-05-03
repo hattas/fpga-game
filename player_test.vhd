@@ -16,8 +16,9 @@ end player_test;
 
 architecture arch of player_test is
     -- 60 Hz and 1 Hz reference ticks
-    signal refr_tick, gravity_tick, second_tick : std_logic;
+    signal refr_tick, refr_tick_next, refr_pulse, second_tick, grav_tick : std_logic;
 	signal second_counter : unsigned(7 downto 0) := (others => '0');
+	signal grav_counter, grav_counter_next : integer := 0;
     -- signals for different entities being shown
     signal wall_on, player_on : std_logic;
     -- pixel coordinates
@@ -305,6 +306,7 @@ architecture arch of player_test is
 		"11000000111100000000111100000011"  --31
     );
 	 
+	 
 begin
     -- registers
     process (clk, reset)
@@ -319,6 +321,7 @@ begin
             player_y_reg <= player_y_next;
             player_x_delta_reg <= player_x_delta_next;
             player_y_delta_reg <= player_y_delta_next;
+			refr_tick <= refr_tick_next;
         end if;
     end process;
 	
@@ -336,10 +339,11 @@ begin
  
     -- refr_tick: 1-clock tick asserted at start of v-sync
     -- i.e., when the screen is refreshed (60 Hz)
-    refr_tick <= '1' when (pix_y = 481) and (pix_x = 0) else
-                 '0';
+    --refr_tick_next <= '1' when (pix_y = 481) and (pix_x = 0) else '0';
+	refr_tick_next <= '1' when (pix_y = 481) else '0';
+	refr_pulse <= '1' when refr_tick = '0' and refr_tick_next = '1' else '0';
     second_tick_unit : entity work.clk_divider port map(refr_tick, second_tick, 60);
-    gravity_tick_unit : entity work.clk_divider port map(refr_tick, gravity_tick, 6);
+	gravit_tick_unit : entity work.clk_divider port map(refr_tick, grav_tick, 3);
 	second_counter <= second_counter + 1 when rising_edge(second_tick);
 	hex4 <= std_logic_vector(second_counter(3 downto 0));
 	hex5 <= std_logic_vector(second_counter(7 downto 4));
@@ -387,51 +391,8 @@ begin
         end if;
     end process camera_process;
 
-    player_delta_process : process (refr_tick)
-    begin
-        if rising_edge(refr_tick) then
-            -- x deltas
-            -- left
-            if btn_left = '1' then
-                if player_x_delta_reg > -4 and gravity_tick = '1' then
-                    player_x_delta_next <= player_x_delta_reg - 1;
-                end if;
-                moving_left <= '1';
-                moving_right <= '0';
-            -- right
-            elsif btn_right = '1' then
-                if player_x_delta_reg < 4 and gravity_tick = '1' then
-                    player_x_delta_next <= player_x_delta_reg + 1;
-                end if;
-                moving_left <= '0';
-                moving_right <= '1';
-            else
-			    if on_left = '1' or on_right = '1' then
-					player_x_delta_next <= (others => '0');
-                elsif player_x_delta_reg > 0 and gravity_tick = '1' then
-                    player_x_delta_next <= player_x_delta_reg - 1;
-                elsif player_x_delta_reg < 0 and gravity_tick = '1' then
-                    player_x_delta_next <= player_x_delta_reg + 1;
-                end if;
-            end if;
-            
-            -- y deltas
-            -- player on ground and press jump button
-            if btn_jump = '1' and on_ground = '1' then
-                player_y_delta_next <= to_signed(-5, 11);
-            elsif on_ground = '1' then
-                player_y_delta_next <= (others => '0');
-            elsif on_ceiling = '1' then
-                player_y_delta_next <= to_signed(1, 11);
-            -- apply gravity
-            elsif player_y_delta_reg < 20 and gravity_tick = '1' then
-                player_y_delta_next <= player_y_delta_reg + 1;
-            end if;
-        end if;
-    end process player_delta_process;
-    
-    player_update_process: process(refr_tick)
-        -- variables to be used inside this process only for collision detection and resolution
+    player_process : process (refr_pulse)
+		-- variables to be used inside this process only for collision detection and resolution
         variable player_x_next_temp, player_y_next_temp : unsigned(10 downto 0);
         variable player_x_l_next, player_x_r_next : unsigned(10 downto 0);
         variable player_y_t_next, player_y_b_next : unsigned(10 downto 0);
@@ -440,8 +401,69 @@ begin
         variable tile_row_var : std_logic_vector(39 downto 0);
 		variable temp_col : std_logic;
     begin
-        if refr_tick = '1' then
-            -- get potential update
+        if refr_pulse = '1' then
+		
+            -- x deltas
+            -- left
+            if btn_left = '1' then
+				if on_left = '0' then
+					if player_x_delta_reg > -8  and grav_tick = '1' then
+						if on_ground = '1' then
+							player_x_delta_next <= player_x_delta_reg - 2;
+						else
+							player_x_delta_next <= player_x_delta_reg - 1;
+						end if;
+					end if;
+				else
+					player_x_delta_next <= to_signed(-1, 11);
+				end if;
+                moving_left <= '1';
+                moving_right <= '0';
+            -- right
+            elsif btn_right = '1' then
+				if on_right = '0' then
+					if player_x_delta_reg < 8  and grav_tick = '1' then
+						if on_ground = '1' then
+							player_x_delta_next <= player_x_delta_reg + 2;
+						else
+							player_x_delta_next <= player_x_delta_reg + 1;
+						end if;
+					end if;
+				else
+					player_x_delta_next <= to_signed(1, 11);
+				end if;
+                moving_left <= '0';
+                moving_right <= '1';
+            else
+			    if (on_left = '1' and moving_left = '1') or (on_right = '1' and moving_right = '1') then
+					player_x_delta_next <= (others => '0');
+                elsif player_x_delta_reg > 0  and grav_tick = '1' then
+                    player_x_delta_next <= player_x_delta_reg - 2;
+                elsif player_x_delta_reg < 0  and grav_tick = '1' then
+                    player_x_delta_next <= player_x_delta_reg + 2;
+                end if;
+				if player_x_delta_reg >= -1 and player_x_delta_reg <= 1 and grav_tick = '1' then
+					player_x_delta_next <= (others => '0');
+				end if;
+            end if;
+            
+            -- y deltas
+            -- player on ground and press jump button
+            if btn_jump = '1' and on_ground = '1' then
+                player_y_delta_next <= to_signed(-10, 11);
+            elsif on_ground = '1' then
+                player_y_delta_next <= (others => '0');
+            elsif on_ceiling = '1' then
+                player_y_delta_next <= to_signed(1, 11);
+            -- apply gravity
+            elsif player_y_delta_reg < 20 and grav_tick = '1' then
+                player_y_delta_next <= player_y_delta_reg + 1;
+			else
+				player_y_delta_next <= player_y_delta_reg;
+            end if;
+			
+			
+			-- get potential update
             -- these temporary next positions may result in collisions and
             -- need to be resolved
             player_x_next_temp := player_x_reg + unsigned(player_x_delta_reg);
@@ -603,11 +625,15 @@ begin
             
             player_x_next <= player_x_next_temp;
             player_y_next <= player_y_next_temp;
-        else
-            player_x_next <= player_x_reg;
+		else
+			player_x_next <= player_x_reg;
             player_y_next <= player_y_reg;
+            player_x_delta_next <= player_x_delta_reg;
+            player_y_delta_next <= player_y_delta_reg;
         end if;
-    end process player_update_process;
+    end process player_process;
+    
+    
 
     color_mux : process (video_on, wall_on)
 		variable color_row : std_logic_vector(31 downto 0);
