@@ -1,4 +1,11 @@
--- generate pulses for nes controller
+----------------------------------------------------------------------------------
+--
+-- file: nes_clocks.vhd
+-- authors: John Hattas, Margaret Huelskamp
+-- created: 4/28/19
+-- description: Generate clock and latch signals for NES controller
+----------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

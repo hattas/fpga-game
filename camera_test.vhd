@@ -1,4 +1,12 @@
--- test a larger screen with scrolling camera
+----------------------------------------------------------------------------------
+--
+-- file: camera_test.vhd
+-- authors: John Hattas, Margaret Huelskamp
+-- created: 4/18/19
+-- description: Uses camera controlled by buttons to move visible area of world.
+-- 
+----------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

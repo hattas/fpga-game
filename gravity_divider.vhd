@@ -1,4 +1,11 @@
--- convert 60 Hz reference tick to 1 Hz second tick
+----------------------------------------------------------------------------------
+--
+-- file: gravity_divider.vhd
+-- authors: John Hattas, Margaret Huelskamp
+-- created: 5/3/19
+-- description: Generates gravity tick time_count clock ticks after player leaves ground.
+-- 
+----------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

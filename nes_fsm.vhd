@@ -1,5 +1,11 @@
--- nes_fsm.vhd
--- from https://tresi.github.io/nes/
+----------------------------------------------------------------------------------
+--
+-- file: nes_fsm.vhd
+-- authors: Tresi
+-- created: 4/28/19
+-- description: State machine to read in NES controller data 
+-- source: https://tresi.github.io/nes/
+----------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;

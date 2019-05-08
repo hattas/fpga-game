@@ -1,4 +1,12 @@
--- Listing 12.5
+----------------------------------------------------------------------------------
+--
+-- file: color_test.vhd
+-- authors: John Hattas, Margaret Huelskamp
+-- created: 4/14/19
+-- description: Display the 8 colors to the screen in bars.
+-- 
+----------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

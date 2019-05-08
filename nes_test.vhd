@@ -1,4 +1,11 @@
--- test the nes driver circuit
+----------------------------------------------------------------------------------
+--
+-- file: nes_test.vhd
+-- authors: John Hattas, Margaret Huelskamp
+-- created: 4/28/19
+-- description: Test the NES controller.   
+----------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

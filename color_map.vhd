@@ -1,4 +1,12 @@
--- map 3 bit colors to 8 bit
+----------------------------------------------------------------------------------
+--
+-- file: color_map.vhd
+-- authors: John Hattas, Margaret Huelskamp
+-- created: 4/14/19
+-- description: Map 3 bit color to 24 bit color.
+-- 
+----------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

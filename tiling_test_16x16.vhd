@@ -1,4 +1,11 @@
--- Listing 12.5
+----------------------------------------------------------------------------------
+--
+-- file: tiling_test_16x16.vhd
+-- authors: John Hattas, Margaret Huelskamp
+-- created: 4/14/19
+-- description: 16x16 XOR Tile tests
+----------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

@@ -1,4 +1,11 @@
--- Listing 12.5
+----------------------------------------------------------------------------------
+--
+-- file: tiling_test_multi.vhd
+-- authors: John Hattas, Margaret Huelskamp
+-- created: 4/14/19
+-- description: Multiple sized tile test.
+----------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

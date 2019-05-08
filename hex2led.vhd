@@ -1,5 +1,11 @@
--- hexadecimal digit to seven-segment LED display decoder
--- adapted from Pong P. Chu's book; page 56;
+----------------------------------------------------------------------------------
+--
+-- file: hex2led.vhd
+-- authors: John Hattas, Margaret Huelskamp
+-- created: 5/2/19
+-- description: hexadecimal digit to seven-segment LED display decoder
+-- 		adapted from Pong P. Chu's book; page 56;
+----------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;

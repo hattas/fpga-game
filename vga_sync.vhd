@@ -1,4 +1,12 @@
--- Listing 12.1
+----------------------------------------------------------------------------------
+--
+-- file: vga_sync.vhd
+-- authors: John Hattas, Margaret Huelskamp
+-- created: 4/14/19
+-- description: VGA Synchronization Circuit
+-- 		used from Pong P. Chu's book p264;  
+----------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

@@ -1,4 +1,12 @@
--- convert 60 Hz reference tick to 1 Hz second tick
+----------------------------------------------------------------------------------
+--
+-- file: clk_divider.vhd
+-- authors: John Hattas, Margaret Huelskamp
+-- created: 4/22/19
+-- description: Divide input clock by time_count integer input.
+-- 
+----------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

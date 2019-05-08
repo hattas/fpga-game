@@ -1,4 +1,11 @@
--- Listing 12.5
+----------------------------------------------------------------------------------
+--
+-- file: tile_rom_32x32.vhd
+-- authors: John Hattas, Margaret Huelskamp
+-- created: 4/8/19
+-- description: Test 32x32 tile ROM
+------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

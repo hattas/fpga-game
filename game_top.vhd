@@ -1,3 +1,11 @@
+----------------------------------------------------------------------------------
+--
+-- file: game_top.vhd
+-- authors: John Hattas, Margaret Huelskamp
+-- created: 4/14/19
+-- description: Main top file for the game.  Instantiages player unit, color map, vga sync unit, and controller units.
+-- 
+----------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
